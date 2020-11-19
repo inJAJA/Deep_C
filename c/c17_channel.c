@@ -20,31 +20,39 @@ int main()
     int num[3][25] = {{1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2},
                       {3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2, 1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5},
                       {6, 3, 1, 2, 3, 5, 3, 2, 2, 1, 2, 3, 5, 3, 2, 2, 3, 2, 2, 6, 3, 1, 2, 3, 5}};
-    int w[3][9] = {{1, 0, 1, 0, 1, 1, 0, 0, 1},
+    int weight[3][9] = {{1, 0, 1, 0, 1, 1, 0, 0, 1},
                    {0, 1, 0, 1, 0, 1, 1, 1, 0},
                    {1, 1, 0, 0, 1, 0, 0, 1, 0}};
     int bias[3] = {1, 2, 3};   // => *b = 1;
 
-    printf("\ninput x : ");
+    printf("\ninput x");
     for (int c = 0; c < 3; c++){
-        for (int i = 0; i < 25; i++){
-            x[c*25+i] = num[c][i];
-            printf("%d\t", x[(c*25)+i]);
+        printf("--------------%d\n", c);
+        for (int h = 0; h < 5; h++){
+            for (int w = 0; w < 5; w++){
+                x[c*25+5*h+w] = num[c][5*h+w];
+                printf("%d\t", x[c*25+5*h+w]);
+            }
+            printf("\n");
         }
     }
 
-    printf("\nweight : ");
+    printf("\nweight\n");
     for (int c = 0; c < 3; c++){
-        for (int i = 0; i < 9; i++){
-            k[c*9+i] = w[c][i];
-            printf("%d\t", k[c*9+i]);
+        printf("--------------%d\n", c);
+        for (int h = 0; h < 3; h++){
+            for (int w = 0; w < 3; w++){
+                k[9*c+3*h+w] = weight[c][3*h+w];
+                printf("%d\t", k[c*9+3*h+w]);
+            }
+            printf("\n");
         }
     }
 
-    printf("\nbias : ");
+    printf("\nbias\n");
     for (int c = 0; c < 3; c++){
         b[c] = bias[c];
-        printf("%d\t", b[c]);
+        printf("%d\n", b[c]);
     }
 
     // conv_padding_channel
@@ -62,16 +70,16 @@ int main()
         }
     }
 
+    // result
     printf("\nresult\n");
     for (int c = 0; c < 3; c++){
-        printf("%d\n", c);
+        printf("--------------%d\n", c);
         for (int h = 0; h < 5; h++){
             for (int w = 0; w < 5; w++){
                 printf("%d\t", o[c*25+5*h+w]);
             }
             printf("\n");
         }
-        printf("--------------");
     }
     
 
@@ -85,16 +93,16 @@ int main()
         }
     }
 
+    // result with bias
     printf("\nresult with bias\n");
     for (int c = 0; c < 3; c++){
-        printf("%d\n", c);
+        printf("--------------%d\n", c);
         for (int h = 0; h < 5; h++){
             for (int w = 0; w < 5; w++){
                 printf("%d\t", o[c*25+5*h+w]);
             }
             printf("\n");
         }
-        printf("--------------");
     }
     
     
