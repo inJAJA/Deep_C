@@ -1,0 +1,7 @@
+# no binary files
+*
+!/**/
+!*.*
+
+*.json
+*.out
