@@ -36,7 +36,7 @@ int main()
     // Padding
     for (int h = 0; h < 5; h++){
         for (int w = 0; w < 5; w++){
-            x[(h+1)*7 + (w+1)] = num[h*5 + w];
+            x[(h+1)*7 + (w+1)] = num[h*5 + w];  // 7 = padding 후 image size
         }
     }
 
