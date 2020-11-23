@@ -3,106 +3,96 @@
 
 int main()
 {
-    int *x = (int*)malloc(3 * 25 * sizeof(int));
-    int *k = (int*)malloc(3 *9 * sizeof(int));
+    int *x = (int*)calloc(3 * 7 * 7, sizeof(int)); // padding // calloc : 메모리를 할당하고 0으로 초기화
+    int *k = (int*)malloc(3 * 3 * 3 * sizeof(int));
     int *b = (int*)malloc(3 * 1 * sizeof(int));
 
-    int *o = (int*)calloc(3 *25, sizeof(int));
+    int *o = (int*)malloc(1 * 5 * 5 * sizeof(int)); 
 
-    printf("\no : ");                   // calloc : 메모리를 할당하고 0으로 초기화
-    for (int i = 0; i < 3; i++){
-        for (int j = 0; j < 3; j++){
-            printf("%d\t", o[3*i+j]);
+    // data (N, C, H, W) = (1, 3, 3, 3)
+    int num[3*5*5] = {1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2,
+                      3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2, 1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5,
+                      6, 3, 1, 2, 3, 5, 3, 2, 2, 1, 2, 3, 5, 3, 2, 2, 3, 2, 2, 6, 3, 1, 2, 3, 5};
+    int weight[3*3*3] = {1, 0, 1, 0, 1, 1, 0, 0, 1,
+                         0, 1, 0, 1, 0, 1, 1, 1, 0,
+                         1, 1, 0, 0, 1, 0, 0, 1, 0};
+    b[0] = 1;   // => *b = 1;                  // batch 하나당 bias 하나
+
+    // Padding
+    for (int c = 0; c < 3; c++){
+        for (int h = 0; h < 5; h++){
+            for (int w = 0; w < 5; w++){
+                x[c*7*7 + (h+1)*7 + (w+1)] = num[c*5*5 + h*5 + w];
+            }
         }
     }
 
-    // data
-    int num[3][25] = {{1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2},
-                      {3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2, 1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5},
-                      {6, 3, 1, 2, 3, 5, 3, 2, 2, 1, 2, 3, 5, 3, 2, 2, 3, 2, 2, 6, 3, 1, 2, 3, 5}};
-    int weight[3][9] = {{1, 0, 1, 0, 1, 1, 0, 0, 1},
-                   {0, 1, 0, 1, 0, 1, 1, 1, 0},
-                   {1, 1, 0, 0, 1, 0, 0, 1, 0}};
-    int bias[3] = {1, 2, 3};   // => *b = 1;
-
-    printf("\ninput x");
-    for (int c = 0; c < 3; c++){
+    // check input x
+    printf("\ninput x\n");
+    for (int c = 0; c < 3; c++){                // channel
         printf("--------------%d\n", c);
-        for (int h = 0; h < 5; h++){
-            for (int w = 0; w < 5; w++){
-                x[c*25+5*h+w] = num[c][5*h+w];
-                printf("%d\t", x[c*25+5*h+w]);
+        for (int ph = 0; ph < 7; ph++){
+            for (int pw = 0; pw < 7; pw++){
+                printf("%d\t", x[c*7*7 + ph*7 + pw]);
             }
             printf("\n");
         }
     }
 
+    // weight
     printf("\nweight\n");
     for (int c = 0; c < 3; c++){
         printf("--------------%d\n", c);
-        for (int h = 0; h < 3; h++){
-            for (int w = 0; w < 3; w++){
-                k[9*c+3*h+w] = weight[c][3*h+w];
-                printf("%d\t", k[c*9+3*h+w]);
+        for (int kh = 0; kh < 3; kh++){
+            for (int kw = 0; kw < 3; kw++){
+                k[c*3*3 + kh*3 + kw] = weight[c*3*3 + kh*3 + kw];
+                printf("%d\t", k[c*3*3 + kh*3 + kw]);
             }
             printf("\n");
         }
     }
 
-    printf("\nbias\n");
-    for (int c = 0; c < 3; c++){
-        b[c] = bias[c];
-        printf("%d\n", b[c]);
-    }
+    printf("\nbias : %d\n", *b);
 
     // conv_padding_channel
-    for (int c = 0; c < 3; c++){                            // channel
-        for (int h = 0; h < 3; h++){                        //  3 = feature_size
-            for (int w = 0; w < 3; w++){
-                int s = 0;
+    for (int p = 0; p < 5; p++){                        // p = output image height = feature height
+        for (int q = 0; q < 5; q++){                    // q = output image width = feature width
+            int s = 0;
+            for (int c = 0; c < 3; c++){                // channel
+
                 for (int kh = 0; kh < 3; kh++){
                     for (int kw = 0; kw < 3; kw++){
-                        s += x[c*25+5*(h+kh)+w+kw]*k[c*9+3*kh+kw];   // 3 = input image_size, 2 = kernel_size
-                    }
+                    s += x[c*7*7 + (p+kh)*7 + q+kw]*k[c*3*3 + kh*3 + kw];   // 7 = input image_size, 3 = kernel_size
                 }
-                o[c*25+5*(h+1)+w+1] = s;                         // 5 = output image_size, 1 = padding
+            }
+            o[(p)*5 + q] = s;                         // 5 = output image_size
             }
         }
     }
 
     // result
     printf("\nresult\n");
-    for (int c = 0; c < 3; c++){
-        printf("--------------%d\n", c);
-        for (int h = 0; h < 5; h++){
-            for (int w = 0; w < 5; w++){
-                printf("%d\t", o[c*25+5*h+w]);
-            }
-            printf("\n");
+    for (int p = 0; p < 5; p++){
+        for (int q = 0; q < 5; q++){
+            printf("%d\t", o[p*5 +q]);
         }
+        printf("\n");
     }
-    
-
 
     // bias
-    for (int c = 0; c < 3; c++){
-        for (int h = 0; h < 3; h++){
-            for (int w = 0; w < 3; w++){
-                o[c*25+5*(h+1)+w+1] += b[c];
-            }
+    for (int p = 0; p < 5; p++){
+        for (int q = 0; q < 5; q++){
+            o[p*5 + q] += *b;
         }
     }
 
     // result with bias
     printf("\nresult with bias\n");
-    for (int c = 0; c < 3; c++){
-        printf("--------------%d\n", c);
-        for (int h = 0; h < 5; h++){
-            for (int w = 0; w < 5; w++){
-                printf("%d\t", o[c*25+5*h+w]);
-            }
-            printf("\n");
+    for (int p = 0; p < 5; p++){
+        for (int q = 0; q < 5; q++){
+            printf("%d\t", o[5*p + q]);
         }
+        printf("\n");
     }
     
     
