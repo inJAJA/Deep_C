@@ -2,7 +2,8 @@
 #include <stdlib.h>
 
 int main()
-{
+{   
+    // (1, 3, 5, 5) -> (1, 1, 5, 5)
     int *x = (int*)calloc(3 * 7 * 7, sizeof(int)); // padding // calloc : 메모리를 할당하고 0으로 초기화
     int *k = (int*)malloc(3 * 3 * 3 * sizeof(int));
     int *b = (int*)malloc(3 * 1 * sizeof(int));
