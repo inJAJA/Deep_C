@@ -13,18 +13,15 @@ int main()
                         1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2,  // batch = 2
                         3, 2, 2, 6, 3, 1, 2, 3, 5, 3, 2, 2, 1, 2, 3, 5, 3, 2, 2, 6, 3, 1, 2, 3, 5,
                         6, 3, 1, 2, 3, 5, 3, 2, 2, 1, 2, 3, 5, 3, 2, 2, 3, 2, 2, 6, 3, 1, 2, 3, 5};
-    int weight[2 * 3 * 3 * 3] = {1, 0, 1, 0, 1, 1, 0, 0, 1,     // batch = 1
-                                0, 1, 0, 1, 0, 1, 1, 1, 0,
-                                1, 1, 0, 0, 1, 0, 0, 1, 0,
-                                1, 0, 1, 0, 1, 1, 0, 0, 1,      // batch = 2
+    int weight[1 * 3 * 3 * 3] = {1, 0, 1, 0, 1, 1, 0, 0, 1,     // 1 = output channel
                                 0, 1, 0, 1, 0, 1, 1, 1, 0,
                                 1, 1, 0, 0, 1, 0, 0, 1, 0};
-    int bias[2 * 3 * 1] = {1, 3, 2, 1, 3, 2};   // => *b = 1; *(b+1) = 3;           // bias는 batch * channel 수 만큼 가진다.
+    int bias[1 * 3 * 1] = {1, 3, 2};   // => *b = 1; *(b+1) = 3;           // bias는 output_channel * channel 수 만큼 가진다.
 
     // 변수 
     int *x = (int*)calloc(2 * 3 * 7 * 7, sizeof(int)); // padding // calloc : 메모리를 할당하고 0으로 초기화
-    int *k = (int*)malloc(2 * 3 * 3 * 3 * sizeof(int));
-    int *b = (int*)malloc(2 * 3 * 1 * sizeof(int));
+    int *k = (int*)malloc(1 * 3 * 3 * 3 * sizeof(int));
+    int *b = (int*)malloc(1 * 3 * 1 * sizeof(int));
 
     int *y = (int*)malloc(2 * 1 * 5* 5 * sizeof(int)); 
 
@@ -60,27 +57,22 @@ int main()
 
     // kernel
     printf("\nweight\n");
-    for (int n = 0; n < 2; n++){
-        printf("batch : %d\n", n+1);
-        for (int c = 0; c < 3; c++){
-            printf("--------------%d\n", c);
-            for (int kh = 0; kh < 3; kh++){
-                for (int kw = 0; kw < 3; kw++){
-                    k[n*3*3*3 + c*3*3 + kh*3 + kw] = weight[n*3*3*3 + c*3*3 + kh*3 + kw];
-                    printf("%d\t", k[n*3*3*3 + c*3*3 + kh*3 + kw]);
-                }
-                printf("\n");
+    for (int c = 0; c < 3; c++){
+        printf("--------------%d\n", c);
+        for (int kh = 0; kh < 3; kh++){
+            for (int kw = 0; kw < 3; kw++){
+                k[c*3*3 + kh*3 + kw] = weight[c*3*3 + kh*3 + kw];
+                printf("%d\t", k[c*3*3 + kh*3 + kw]);
             }
+            printf("\n");
         }
     }
 
     // bias
     printf("\nbias\n");
-    for (int n = 0; n < 2; n++){
-        for (int c = 0; c < 3; c++){
-            b[n*3 + c] = bias[n*3 + c];
-            printf("%d\n", b[n*3 + c]);
-        }
+    for (int c = 0; c < 3; c++){
+        b[c] = bias[c];
+        printf("%d\n", b[c]);
     }
 
     // Conv
@@ -92,10 +84,10 @@ int main()
                 for (int c = 0; c < 3; c++){                // 3 = channel
                     for (int kh = 0; kh < 3; kh++){
                         for (int kw = 0; kw < 3; kw++){
-                            s += x[n*3*7*7 + c*7*7 + (p+kh)*7 + q+kw] * k[n*3*3*3 + c*3*3 + kh*3 + kw];   // 7 = input image_size, 3 = kernel_size
+                            s += x[n*3*7*7 + c*7*7 + (p+kh)*7 + q+kw] * k[c*3*3 + kh*3 + kw];   // 7 = input image_size, 3 = kernel_size
                         }   
                     }
-                    s += b[n*3 + c];                        // bias 더하기
+                    s += b[c];                        // bias 더하기
                     y[n*1*5*5 + p*5 + q] = s;               // 5 = output image_size, c = 1 이면 c는 계산 안함
                 }
             }
