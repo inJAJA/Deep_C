@@ -87,7 +87,7 @@ int main()
 
     // Conv
     for (int n = 0; n < 2; n++){        // batch
-        for (int k = 0; k < 2; k++){        // output size
+        for (int k = 0; k < 2; k++){        // output channel
             for (int p = 0; p < 5; p++){                        //  5 = output image size = feature_size
                 for (int q = 0; q < 5; q++){
                     int s = 0;
